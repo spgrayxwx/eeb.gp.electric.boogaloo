@@ -41,6 +41,12 @@ Vector.Competence.bTemp <- function(Temp) {
   return(c(ProbB2I)) #probability of bite -> infection
 }
 
+#Temp dependent mosquito life span equation (linear fit over shorter scale)
+SimpleMLifeSpanvTempM <- function(Temp) {
+  MLifeSpan <- (1.461899-0.03151*Temp)
+  return(c(MLifeSpan))
+}
+
 #Initial.Mos.Infection.Rate
 InitMosIR = 0.0314 #based on literature
 # Total Hum Pop
@@ -105,8 +111,8 @@ Human.Mosquito.SIS.SI.Model <- function(t, state, parameters) {
     
     #toy mosquito pop replacement
     birthsM <- muM * NM
-    deaths.SM <- muM * Sus.Mosquitoes
-    deaths.IM <- muM * Inf.Mosquitoes
+    deaths.SM <- SimpleMLifeSpanvTempM(Temp_t) * Sus.Mosquitoes
+    deaths.IM <- SimpleMLifeSpanvTempM(Temp_t) * Inf.Mosquitoes
     
     dSM <-  birthsM - lambda_M * Sus.Mosquitoes - deaths.SM
     dIM <-  lambda_M * Sus.Mosquitoes - deaths.IM
@@ -124,6 +130,6 @@ output_df <- as.data.frame(output)
 output_df$Temp <- DayTemp[output_df$time + 1]
 
 output_long <- pivot_longer(output_df, cols = -time, names_to = "Compartment", values_to = "Population")
-  ggplot(output_long, aes(x = time, y = Population, color = Compartment)) +
+ggplot(output_long, aes(x = time, y = Population, color = Compartment)) +
   geom_line() +
-  theme_minimal()
+  theme_classic() #or do minimal for lines
